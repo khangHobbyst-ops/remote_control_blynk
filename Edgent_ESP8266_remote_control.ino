@@ -51,9 +51,8 @@ bool buttonState = 0;  // variable for reading the pushbutton status
 unsigned long previousMillis = 0;
 const long interval = 250; 
 
-BlynkTimer timer;
 int ETA_min;
-
+bool enable_timer;
 
 void setup()
 {
@@ -63,7 +62,7 @@ void setup()
   // initialize the pushbutton pin as an input:
   pinMode(buttonPin, INPUT_PULLUP);
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
 
   BlynkEdgent.begin();
 }
@@ -71,8 +70,11 @@ void setup()
 void switchButton(){
   buttonState=!buttonState;
   if (buttonState){
+    //Serial.println("running");
     Blynk.logEvent("running");
   }
+  
+  Blynk.virtualWrite(V0, buttonState);
       
 }
 BLYNK_WRITE(V0){
@@ -82,9 +84,12 @@ BLYNK_WRITE(V0){
 BLYNK_WRITE(V1){
   ETA_min = param.asInt();
 }
+
 BLYNK_WRITE(V2){
   enable_timer = param.asInt();
 }
+
+
 void loop() {
   BlynkEdgent.run();
 
@@ -93,11 +98,9 @@ void loop() {
   if ( digitalRead(buttonPin) == LOW)
   {
     if (currentMillis - previousMillis >= interval) {
-      previousMillis = currentMillis; // Save the last time the LED toggled
+      previousMillis = currentMillis; 
       switchButton();
-      Blynk.virtualWrite(V0, buttonState);
     }
-    
   }
 
   //handle output acroding to buttonState
