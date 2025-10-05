@@ -42,6 +42,8 @@
 
 #include "BlynkEdgent.h"
 
+#include <ESP8266TimerInterrupt.h>
+
 const int buttonPin = D2;  // the number of the pushbutton pin
 const int relayPin = D7;    // the number of the LED pin
 
@@ -49,10 +51,24 @@ const int relayPin = D7;    // the number of the LED pin
 bool buttonState = 0;  // variable for reading the pushbutton status
 
 unsigned long previousMillis = 0;
-const long interval = 250; 
+const long interval = 500; 
 
 int ETA_min;
 bool enable_timer;
+ESP8266Timer ITimer;
+
+int count=60;
+void ICACHE_RAM_ATTR count_time(){
+  if (buttonState && enable_timer && ETA_min){
+    if (count-- == 0){
+      ETA_min--;
+      //Serial.println("ETA_min= ");
+      //Serial.print(ETA_min);
+      Blynk.virtualWrite(V1, ETA_min);
+      count=60;
+    }
+  }
+}
 
 void setup()
 {
@@ -65,6 +81,8 @@ void setup()
   //Serial.begin(115200);
 
   BlynkEdgent.begin();
+  Blynk.syncVirtual(V1);
+  ITimer.attachInterruptInterval(1000000, count_time);
 }
 
 void switchButton(){
@@ -73,9 +91,8 @@ void switchButton(){
     //Serial.println("running");
     Blynk.logEvent("running");
   }
-  
+
   Blynk.virtualWrite(V0, buttonState);
-      
 }
 BLYNK_WRITE(V0){
   switchButton();
@@ -89,21 +106,8 @@ BLYNK_WRITE(V2){
   enable_timer = param.asInt();
 }
 
-
-void loop() {
-  BlynkEdgent.run();
-
-  unsigned long currentMillis = millis();
-  
-  if ( digitalRead(buttonPin) == LOW)
-  {
-    if (currentMillis - previousMillis >= interval) {
-      previousMillis = currentMillis; 
-      switchButton();
-    }
-  }
-
-  //handle output acroding to buttonState
+void handle_output(){
+    //handle output acroding to buttonState
   if (buttonState) {
         // turn relay on
     digitalWrite(relayPin, LOW);
@@ -113,6 +117,23 @@ void loop() {
         // turn relay off
     digitalWrite(relayPin, HIGH);
   }
+}
 
+void loop() {
+  if (enable_timer)
+    if (ETA_min<=0){
+      buttonState=0;
+      Blynk.virtualWrite(V0,buttonState);
+    }
+  BlynkEdgent.run();
+  unsigned long currentMillis = millis();
+  if ( digitalRead(buttonPin) == LOW)
+  {
+    if (currentMillis - previousMillis >= interval) {
+      previousMillis = currentMillis; 
+      switchButton();
+    }
+  }
+  handle_output();
 }
 
