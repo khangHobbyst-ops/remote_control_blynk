@@ -1,6 +1,7 @@
 <p> the schematic of project is shown below</p>
 
-<img width="1426" height="564" alt="image" src="https://github.com/user-attachments/assets/3608d94b-2bdd-415f-9c16-2d9c43d7839a" />
+<img width="1405" height="555" alt="image" src="https://github.com/user-attachments/assets/69943632-f571-4bbc-b65b-1f9a7ff101f0" />
+
 
 
 <p>the main file is "Edgent_ESP8266_remote_control.ino", which can be opened in arduino IDE</p>
